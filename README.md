@@ -1,2 +1,6 @@
 # epa-blbx
-Encedo EPA low-level management application
+Encedo EPA Node supervisor manager aka blbx (blackbox) 
+
+To build just type make. 
+
+Cheers
