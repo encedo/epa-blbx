@@ -1152,7 +1152,7 @@ static void pabort(const char *s) {
 
 static void print_usage(const char *prog) {
 
-	printf("Version: 1.3 " __DATE__ " " __TIME__ "\n");
+	printf("Version: 1.4 " __DATE__ " " __TIME__ "\n");
 	printf("Usage: %s [-vDdoapbh]\n", prog);
 	puts("  -v --verbose  verbose mode (debug)\n"
 	     "  -D --debug    debug SPI RAW communication\n"
@@ -1421,7 +1421,7 @@ static int set_interface_attribs(int fd, int speed)
 //this function is dirty, just a PoC
 int bootloader_send_hex(int fd_cdc, int fd_hexfile)
 {
-    char txbuf[2];      //chaekc comment below
+    char txbuf[512+1];      //check comment below
     int tbw, cnt;
     unsigned char buf[80];
     int rdlen, wlen;
@@ -1439,7 +1439,6 @@ int bootloader_send_hex(int fd_cdc, int fd_hexfile)
       	rdlen = read(fd_cdc, buf, sizeof(buf) - 1);
         if (rdlen > 0) {
             buf[rdlen] = 0;
-            //printf("Read %d: \"%s\"\n", rdlen, buf);
 	    if (strstr(buf, "WAITING") != NULL) {
 		sync = 1;
 		break;
@@ -1471,8 +1470,6 @@ int bootloader_send_hex(int fd_cdc, int fd_hexfile)
                 ret = -1;
                 break;
         }
-        //txbuf[tbw] = '\0';
-        //printf("%04x TBW: %d\r\n", cnt, tbw);
 
         wlen = write(fd_cdc, txbuf, tbw);
         if (wlen != tbw) {
@@ -1480,22 +1477,9 @@ int bootloader_send_hex(int fd_cdc, int fd_hexfile)
                 ret = -2;
                 break;
         }
-        //tcdrain(fd);
-	
-	/*if (cnt % 32767 == 0) {
-                rdlen = read(fd_cdc, buf, sizeof(buf) - 1);
-                if (rdlen > 0) {
-                        buf[rdlen] = 0;
-                        printf("%s", buf);
-                } else if (rdlen < 0) {
-                        printf("Error from read: %d: %s\n", rdlen, strerror(errno));
-                } else {
-                        printf("Timeout from read OR closed fd\n");
-                        //break;
-                }
-	}*/
-        cnt++;
-	if ((cnt % 65535) == 0) printf(".");
+	    
+        cnt += wlen;
+	if ((cnt % 32768) == 0) printf(".");
     } while (tbw > 0);
     
     printf("\n");
